@@ -25,18 +25,20 @@ aliases = {
     'tag':          'cyan',
 }
 
+escapes = {
+    'reset':    '\x1b[0m',
+    'up':       '\x1b[#1A',
+}
+
 if 'GHERKIN_COLORS' in os.environ:
     colors = [p.split('=') for p in os.environ['GHERKIN_COLORS'].split(':')]
     aliases.update(dict(colors))
 
 for alias in aliases:
-    locals()[alias] = ''.join([colors[c] for c in aliases[alias].split(',')])
+    escapes[alias] = ''.join([colors[c] for c in aliases[alias].split(',')])
     arg_alias = alias + '_arg'
     arg_seq = aliases.get(arg_alias, aliases[alias] + ',bold')
-    locals()[arg_alias] = ''.join([colors[c] for c in arg_seq.split(',')])
-
-def reset():
-    return "\x1b[0m"
+    escapes[arg_alias] = ''.join([colors[c] for c in arg_seq.split(',')])
 
 def up(n):
     return "\x1b[#%dA" % n
