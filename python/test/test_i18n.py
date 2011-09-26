@@ -4,6 +4,8 @@ import unittest
 
 from gherkin.i18n import I18n
 
+# XXX: CONTAINS UNPORTED TESTS
+
 class TestI18n(unittest.TestCase):
     """
 module Gherkin
