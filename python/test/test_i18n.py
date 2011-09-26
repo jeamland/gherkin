@@ -81,8 +81,8 @@ module Gherkin
         expected_substring = '|Quando |Quand |Quan |Pryd |Pokud |'
         assert expected_substring in I18n.keyword_regexp('step')
 
-    def _test_print_available_languages(self):
-        assert "\n" + I18n.language_table == """
+    def test_print_available_languages(self):
+        assert u"\n" + I18n.language_table() == u"""
       | ar        | Arabic              | العربية           |
       | bg        | Bulgarian           | български         |
       | ca        | Catalan             | català            |
@@ -130,8 +130,8 @@ module Gherkin
       | zh-TW     | Chinese traditional | 繁體中文              |
 """
 
-    def _test_print_keyword_for_a_given_language(self):
-        assert "\n" + I18n.get('fr').keyword_table == """
+    def test_print_keyword_for_a_given_language(self):
+        assert u"\n" + I18n.get('fr').keyword_table() == u"""
       | feature          | "Fonctionnalité"                       |
       | background       | "Contexte"                             |
       | scenario         | "Scénario"                             |

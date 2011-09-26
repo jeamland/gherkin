@@ -1,9 +1,12 @@
 # -*- coding: utf8 -*-
 
+import cStringIO
 import os.path
 import re
 
 import yaml
+
+from gherkin.formatter import model, pretty_formatter
 
 here = os.path.dirname(__file__)
 code_keyword_re = re.compile(r"[\s',!]")
@@ -16,6 +19,9 @@ def construct_yaml_str(self, node):
 
 yaml.Loader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
 yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
+
+def quote(value):
+    return u'"' + value + u'"'
 
 class I18n(object):
     FEATURE_ELEMENT_KEYS = [
@@ -77,6 +83,18 @@ class I18n(object):
         return code_keyword_re.sub('', gherkin_keyword).strip()
 
     @classmethod
+    def language_table(cls):
+        stream = cStringIO.StringIO()
+        formatter = pretty_formatter.PrettyFormatter(stream, False, False)
+        table = []
+        for i18n in cls.all():
+            cells = [i18n.iso_code, i18n.keywords('name')[0],
+                     i18n.keywords('native')[0]]
+            table.append(model.Row([], cells, None))
+        formatter.table(table)
+        return stream.getvalue().decode('utf8')
+
+    @classmethod
     def unicode_escape(cls, word, prefix="\\u"):
         chars = []
         for c in [ord(char) for char in word]:
@@ -114,6 +132,29 @@ class I18n(object):
         key = str(key)
         keywords = self._keywords[key].split('|')
         return [self.real_keyword(key, keyword) for keyword in keywords]
+
+    def keyword_table(self):
+        stream = cStringIO.StringIO()
+        formatter = pretty_formatter.PrettyFormatter(stream, False, False)
+
+        gherkin_keyword_table = []
+        for key in self.KEYWORD_KEYS:
+            cells = [key, ', '.join([quote(k) for k in self.keywords(key)])]
+            gherkin_keyword_table.append(model.Row([], cells, None))
+
+        code_keyword_table = []
+        for key in self.STEP_KEYWORD_KEYS:
+            code_keywords = []
+            for keyword in self.keywords(key):
+                if keyword == '* ':
+                    continue
+                code_keywords.append(self.code_keyword_for(keyword))
+            code_keywords = ', '.join([quote(k) for k in code_keywords])
+            cells = [key + ' (code)', code_keywords]
+            code_keyword_table.append(model.Row([], cells, None))
+
+        formatter.table(gherkin_keyword_table + code_keyword_table)
+        return stream.getvalue().decode('utf8')
 
     def real_keyword(self, key, keyword):
         if key in self.STEP_KEYWORD_KEYS:
