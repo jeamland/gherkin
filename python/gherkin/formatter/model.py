@@ -1,10 +1,20 @@
-from gherkin.formatter.argument import Argument
+def ensure_unicode(value):
+    if value is None:
+        return None
+    if type(value) is not unicode:
+        value = value.decode('utf8')
+    return value
+
+class Argument(object):
+    def __init__(self, offset, val):
+        self.offset = offset
+        self.val = ensure_unicode(val)
 
 class BasicStatement(object):
     def __init__(self, comments, keyword, name, line):
         self.comments = comments
-        self.keyword = keyword
-        self.name = name
+        self.keyword = ensure_unicode(keyword)
+        self.name = ensure_unicode(name)
         self.line = line
 
     def line_range(self):
@@ -20,7 +30,7 @@ class BasicStatement(object):
 class DescribedStatement(BasicStatement):
     def __init__(self, comments, keyword, name, description, line):
         super(DescribedStatement, self).__init__(comments, keyword, name, line)
-        self.description = description
+        self.description = ensure_unicode(description)
 
 class TagStatement(DescribedStatement):
     def __init__(self, comments, tags, keyword, name, description, line):
@@ -80,21 +90,21 @@ class Step(BasicStatement, Replayable):
         end = 0
         arguments = []
         while True:
-            start = self.name.find('<', end)
+            start = self.name.find(u'<', end)
             if start == -1:
                 break
-            end = self.name.find('>', start)
+            end = self.name.find(u'>', start)
             arguments.append(Argument(start, self.name[start:end + 1]))
         return arguments
 
 class Comment(object):
     def __init__(self, value, line):
-        self.value = value
+        self.value = ensure_unicode(value)
         self.line = line
 
 class Tag(object):
     def __init__(self, name, line):
-        self.name = name
+        self.name = ensure_unicode(name)
         self.line = line
 
     def __eq__(self, other):
@@ -105,8 +115,8 @@ class Tag(object):
 
 class DocString(object):
     def __init__(self, content_type, value, line):
-        self.content_type = content_type
-        self.value = value
+        self.content_type = ensure_unicode(content_type)
+        self.value = ensure_unicode(value)
         self.line = line
 
     def line_range(self):
@@ -116,7 +126,7 @@ class DocString(object):
 class Row(object):
     def __init__(self, comments, cells, line):
         self.comments = comments
-        self.cells = cells
+        self.cells = [ensure_unicode(c) for c in cells]
         self.line = line
 
 class Match(Replayable):
@@ -130,7 +140,6 @@ class Result(Replayable):
     type = "result"
 
     def __init__(self, status, duration, error_message):
-        self.status = status
+        self.status = ensure_unicode(status)
         self.duration = duration
-        self.error_message = error_message
-
+        self.error_message = ensure_unicode(error_message)
