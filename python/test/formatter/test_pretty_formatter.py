@@ -3,7 +3,7 @@
 import cStringIO
 import unittest
 
-from gherkin.formatter import argument, model
+from gherkin.formatter import model
 from gherkin.formatter.ansi_escapes import escapes, up
 from gherkin.formatter.pretty_formatter import PrettyFormatter
 
@@ -17,8 +17,6 @@ class TestPrettyFormatter(unittest.TestCase):
 
     def assert_stream(self, string):
         have = self.stream.getvalue().decode('utf8')
-        print repr(have)
-        print repr(string)
         assert have == string
 
     def test_print_comments_when_scenario_is_longer(self):
@@ -72,7 +70,7 @@ class TestPrettyFormatter(unittest.TestCase):
         self.f.scenario(model.Scenario([], [], 'Scenario', 'Lots of cukes',
                                        '', 3))
         self.f.step(model.Step([], 'Given ', 'I have 999 cukes in my belly', 3))
-        self.f.match(model.Match([argument.Argument(7, '999')], None))
+        self.f.match(model.Match([model.Argument(7, '999')], None))
         self.f.result(model.Result('passed', 6, None))
 
         self.assert_stream(u"""

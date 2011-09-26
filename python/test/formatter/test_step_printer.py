@@ -4,7 +4,7 @@ import cStringIO
 import codecs
 import unittest
 
-from gherkin.formatter.argument import Argument
+from gherkin.formatter.model import Argument
 from gherkin.formatter.step_printer import StepPrinter
 
 utf8decode = codecs.getdecoder('utf8')
