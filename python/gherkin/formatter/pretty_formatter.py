@@ -17,7 +17,6 @@ class MonochromeFormat(object):
     def text(self, text):
         return text
 
-
 class ColorFormat(object):
     def __init__(self, status):
         self.status = status
@@ -27,7 +26,7 @@ class ColorFormat(object):
 
 class PrettyFormatter(object):
     def __init__(self, stream, monochrome, executing):
-        self.stream = stream
+        self.stream = utf8writer(stream)
         self.monochrome = monochrome
         self.executing = executing
 
@@ -114,7 +113,7 @@ class PrettyFormatter(object):
     def table(self, rows):
         cell_lengths = []
         for row in rows:
-            lengths = [len(escape_cell(c.decode('utf8'))) for c in row.cells]
+            lengths = [len(escape_cell(c)) for c in row.cells]
             cell_lengths.append(lengths)
 
         max_lengths = [max(col) for col in zip(cell_lengths)][0]

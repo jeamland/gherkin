@@ -11,6 +11,12 @@ whitespace_re = re.compile(r"\s")
 underscore_re = re.compile(r"[\s-]")
 real_keyword_re = re.compile(r"< $")
 
+def construct_yaml_str(self, node):
+    return self.construct_scalar(node)
+
+yaml.Loader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
+yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
+
 class I18n(object):
     FEATURE_ELEMENT_KEYS = [
         'feature',
