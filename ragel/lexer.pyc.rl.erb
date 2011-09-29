@@ -486,7 +486,7 @@ Lexer_dealloc(lexer_state *self)
 static PyObject *
 Lexer_scan(PyObject *self, PyObject *args, PyObject *kwds)
 {
-  PyObject *input, *input_copy, *feature_end, *listener, *current_row;
+  PyObject *input, *input_copy, *feature_end, *listener, *current_row, *tmp;
   const char *p, *pe, *eof;
   char *data;
   size_t len;
@@ -503,8 +503,31 @@ Lexer_scan(PyObject *self, PyObject *args, PyObject *kwds)
   listener = lexer->listener;
 
   input_copy = PyObject_Str(input);
-  feature_end = PyString_FromString("\n%_FEATURE_END_%");
-  PyString_ConcatAndDel(&input_copy, feature_end);
+  if (input_copy == NULL) {
+    return NULL;
+  }
+  tmp = PyObject_CallMethod(input_copy, "decode", "s", "utf8");
+  if (tmp == NULL) {
+    return NULL;
+  }
+  Py_DECREF(input_copy);
+  input_copy = tmp;
+  feature_end = PyUnicode_FromString("\n%_FEATURE_END_%");
+  if (feature_end == NULL) {
+    return NULL;
+  }
+  tmp = PyUnicode_Concat(input_copy, feature_end);
+  if (tmp == NULL) {
+    return NULL;
+  }
+  Py_DECREF(input_copy);
+  input_copy = tmp;
+  tmp = PyUnicode_AsUTF8String(input_copy);
+  if (tmp == NULL) {
+    return NULL;
+  }
+  Py_DECREF(input_copy);
+  input_copy = tmp;
 
   data = PyString_AsString(input_copy);
   len = PyString_Size(input_copy);
