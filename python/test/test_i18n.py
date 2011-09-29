@@ -1,12 +1,36 @@
 # -*- coding: utf8 -*-
 
+import os.path
 import unittest
 
 from gherkin.i18n import I18n
+from gherkin.lexer.i18n_lexer import I18nLexer
+from gherkin.sexp_recorder import SexpRecorder
 
 # XXX: CONTAINS UNPORTED TESTS
 
 class TestI18n(unittest.TestCase):
+    def setUp(self):
+        self.listener = SexpRecorder()
+
+    def scan_file(self, lexer, filename):
+        here = os.path.dirname(__file__)
+        fixtures = os.path.join(here, '..', '..', 'spec', 'gherkin', 'fixtures')
+        path = os.path.join(fixtures, filename)
+        return lexer.scan(open(path, 'r').read())
+
+    def test_recognize_keywords_in_the_language_of_the_lexer(self):
+        lexer = I18nLexer(self.listener)
+        self.scan_file(lexer, 'i18n_no.feature')
+        assert self.listener.sexps == [
+            [u'comment', u"#language:no", 1],
+            [u'feature', u"Egenskap", u"i18n support", u"", 2],
+            [u'scenario', u"Scenario", u"Parsing many languages", u"", 4],
+            [u'step', u"Gitt ", u"Gherkin supports many languages", 5],
+            [u'step', u"Når ",  u"Norwegian keywords are parsed", 6],
+            [u'step', u"Så ", u"they should be recognized", 7],
+            [u'eof']
+        ]
     """
 module Gherkin
   module Lexer
@@ -148,3 +172,6 @@ module Gherkin
       | and (code)       | "Et"                                   |
       | but (code)       | "Mais"                                 |
 """
+
+if __name__ == '__main__':
+    unittest.main()
