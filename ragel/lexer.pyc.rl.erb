@@ -231,7 +231,7 @@ static PyObject *GherkinLexingError = NULL;
     }
   }
 
-  include lexer_common "lexer_common.en.rl";
+  include lexer_common "lexer_common.<%= @i18n.underscored_iso_code %>.rl";
 
 }%%
 
