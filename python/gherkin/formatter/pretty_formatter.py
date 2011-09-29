@@ -119,7 +119,6 @@ class PrettyFormatter(object):
         max_lengths = []
         for col in range(0, len(cell_lengths[0])):
             max_lengths.append(max([c[col] for c in cell_lengths]))
-        print repr(max_lengths)
 
         for i, row in enumerate(rows):
             for comment in row.comments:
