@@ -7,6 +7,7 @@ import re
 import yaml
 
 from gherkin.formatter import model, pretty_formatter
+from gherkin.lexer import ext as ext_lexer
 
 here = os.path.dirname(__file__)
 code_keyword_re = re.compile(r"[\s',!]")
@@ -116,7 +117,7 @@ class I18n(object):
             underscore_re.sub('_', self.iso_code).lower()
 
     def lexer(self, listener):
-        pass
+        return ext_lexer.get_lexer(self.underscored_iso_code, listener)
 
     def step_keywords(self):
         keywords = set()
