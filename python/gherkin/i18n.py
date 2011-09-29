@@ -110,7 +110,7 @@ class I18n(object):
         self.iso_code = iso_code
         self._keywords = self.LANGUAGES.get(iso_code, None)
         if self._keywords is None:
-            raise Exception("Language not supported: %r" % iso_code)
+            raise Exception("Language not supported: %r" % (iso_code,))
         self._keywords['grammar_name'] = \
             whitespace_re.sub('', self._keywords['name'])
         self.underscored_iso_code = \
