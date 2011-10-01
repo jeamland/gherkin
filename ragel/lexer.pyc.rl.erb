@@ -244,8 +244,7 @@ static int
 unindent(PyObject **con, size_t start_col)
 {
   PyObject *lines, *iterator, *item, *newlines;
-  PyObject *strline, *newstr, *newline;
-  char *str;
+  PyObject *ch, *space, *tab, *newstr, *newline;
   Py_ssize_t i, len;
 
   lines = PyUnicode_Splitlines(*con, 0);
@@ -263,29 +262,30 @@ unindent(PyObject **con, size_t start_col)
     return -1;
   }
 
-  while ((item = PyIter_Next(iterator)) != NULL) {
-    strline = PyUnicode_AsUTF8String(item);
-    str = PyString_AsString(strline);
-    len = PyString_Size(strline);
+  space = PyUnicode_FromStringAndSize(" ", 1);
+  tab = PyUnicode_FromStringAndSize("\t", 1);
 
+  while ((item = PyIter_Next(iterator)) != NULL) {
+    len = PyUnicode_GetSize(item);
     for (i = 0; i < start_col && i < len; i++) {
-      if (str[i] != ' ' && str[i] != '\t') {
+      ch = PySequence_GetItem(item, i);
+      if (PyObject_Compare(ch, space) != 0 && PyObject_Compare(ch, tab) != 0) {
         break;
       }
     }
 
-    newstr = PySequence_GetSlice(strline, i, len);
-    newline = PyUnicode_FromObject(newstr);
-    PyList_Append(newlines, newline);
+    newstr = PySequence_GetSlice(item, i, len);
 
     if (PyList_Append(newlines, newstr) == -1) {
       return -1;
     }
 
-    Py_DECREF(strline);
     Py_DECREF(newstr);
     Py_DECREF(item);
   }
+
+  Py_DECREF(space);
+  Py_DECREF(tab);
 
   newline = PyUnicode_FromString("\n");
   if (newline == NULL) {
