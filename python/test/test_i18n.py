@@ -3,6 +3,8 @@
 import os.path
 import unittest
 
+from nose import tools
+
 from gherkin.i18n import I18n
 from gherkin.lexer.i18n_lexer import I18nLexer
 from gherkin.sexp_recorder import SexpRecorder
@@ -22,7 +24,7 @@ class TestI18n(unittest.TestCase):
     def test_recognize_keywords_in_the_language_of_the_lexer(self):
         lexer = I18nLexer(self.listener)
         self.scan_file(lexer, 'i18n_no.feature')
-        assert self.listener.sexps == [
+        tools.eq_(self.listener.sexps, [
             [u'comment', u"#language:no", 1],
             [u'feature', u"Egenskap", u"i18n support", u"", 2],
             [u'scenario', u"Scenario", u"Parsing many languages", u"", 4],
@@ -30,68 +32,40 @@ class TestI18n(unittest.TestCase):
             [u'step', u"Når ",  u"Norwegian keywords are parsed", 6],
             [u'step', u"Så ", u"they should be recognized", 7],
             [u'eof']
-        ]
-    """
-module Gherkin
-  module Lexer
-    describe I18n do
-      before do
-        @listener = Gherkin::SexpRecorder.new
-      end
+        ])
 
-      def scan_file(lexer, file)
-        lexer.scan(File.new(File.dirname(__FILE__) + "/fixtures/" + file).read)
-      end
+    def test_parse_languages_without_a_space_after_keywords(self):
+        lexer = I18nLexer(self.listener)
+        self.scan_file(lexer, 'i18n_zh-CN.feature')
+        tools.eq_(self.listener.sexps, [
+          [u"comment", u"#language:zh-CN", 1],
+          [u"feature", u"功能", u"加法", u"", 2],
+          [u"scenario", u"场景", u"两个数相加", u"", 4],
+          [u"step", u"假如", u"我已经在计算器里输入6", 5],
+          [u"step", u"而且", u"我已经在计算器里输入7", 6],
+          [u"step", u"当", u"我按相加按钮", 7],
+          [u"step", u"那么", u"我应该在屏幕上看到的结果是13", 8],
+          [u"eof"]
+        ])
 
-      it "should recognize keywords in the language of the lexer" do
-        lexer = Gherkin::Lexer::I18nLexer.new(@listener, false)
-        scan_file(lexer, "i18n_no.feature")
-        @listener.to_sexp.should == [
-          [:comment, "#language:no", 1],
-          [:feature, "Egenskap", "i18n support", "", 2],
-          [:scenario, "Scenario", "Parsing many languages", "", 4],
-          [:step, "Gitt ", "Gherkin supports many languages", 5],
-          [:step, "Når ",  "Norwegian keywords are parsed", 6],
-          [:step, "Så ", "they should be recognized", 7],
-          [:eof]
-        ]
-      end
-
-      it "should parse languages without a space after keywords" do
-        lexer = Gherkin::Lexer::I18nLexer.new(@listener, false)
-        scan_file(lexer, "i18n_zh-CN.feature")
-        @listener.to_sexp.should == [
-          [:comment, "#language:zh-CN", 1],
-          [:feature, "功能", "加法", "", 2],
-          [:scenario, "场景", "两个数相加", "", 4],
-          [:step, "假如", "我已经在计算器里输入6", 5],
-          [:step, "而且", "我已经在计算器里输入7", 6],
-          [:step, "当", "我按相加按钮", 7],
-          [:step, "那么", "我应该在屏幕上看到的结果是13", 8],
-          [:eof]
-        ]
-      end
-
-      it "should parse languages with spaces after some keywords but not others" do
-        lexer = Gherkin::Lexer::I18nLexer.new(@listener, false)
-        scan_file(lexer, "i18n_fr.feature")
-        @listener.to_sexp.should == [
-          [:comment, "#language:fr", 1],
-          [:feature, "Fonctionnalité", "Addition", "", 2],
-          [:scenario_outline, "Plan du scénario", "Addition de produits dérivés", "", 3],
-          [:step, "Soit ", "une calculatrice", 4],
-          [:step, "Etant donné ", "qu'on tape <a>", 5],
-          [:step, "Et ", "qu'on tape <b>", 6],
-          [:step, "Lorsqu'", "on tape additionner", 7],
-          [:step, "Alors ", "le résultat doit être <somme>", 8],
-          [:examples, "Exemples", "", "", 10],
-          [:row, %w{a b somme}, 11],
-          [:row, %w{2 2 4}, 12],
-          [:row, %w{2 3 5}, 13],
-          [:eof]
-        ]
-      end
-      """
+    def test_parse_langauges_with_spaces_after_some_keywords_but_not_others(self):
+        lexer = I18nLexer(self.listener)
+        self.scan_file(lexer, 'i18n_fr.feature')
+        tools.eq_(self.listener.sexps, [
+          [u"comment", u"#language:fr", 1],
+          [u"feature", u"Fonctionnalité", u"Addition", u"", 2],
+          [u"scenario_outline", u"Plan du scénario", u"Addition de produits dérivés", u"", 3],
+          [u"step", u"Soit ", u"une calculatrice", 4],
+          [u"step", u"Etant donné ", u"qu'on tape <a>", 5],
+          [u"step", u"Et ", u"qu'on tape <b>", 6],
+          [u"step", u"Lorsqu'", u"on tape additionner", 7],
+          [u"step", u"Alors ", u"le résultat doit être <somme>", 8],
+          [u"examples", u"Exemples", u"", u"", 10],
+          [u"row", [u'a', u'b', u'somme'], 11],
+          [u"row", [u'2', u'2', u'4'], 12],
+          [u"row", [u'2', u'3', u'5'], 13],
+          [u"eof"]
+        ])
 
     def test_have_code_keywords_without_punctuation(self):
         code_keywords = (u'Avast', u'Akkor', u'Etantdonné', u'Lorsque', u'假設')
