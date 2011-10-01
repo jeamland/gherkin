@@ -36,10 +36,12 @@ static PyObject *GherkinLexingError = NULL;
 #define PTR_TO(P) (data + lexer->P)
 
 #define STORE_KW_END_CON(EVENT) \
-  store_multiline_kw_con(listener, # EVENT, \
-    PTR_TO(keyword_start), LEN(keyword_start, PTR_TO(keyword_end - 1)), \
-    PTR_TO(content_start), LEN(content_start, PTR_TO(content_end)), \
-    lexer->current_line, lexer->start_col); \
+    if (store_multiline_kw_con(listener, # EVENT, \
+          PTR_TO(keyword_start), LEN(keyword_start, PTR_TO(keyword_end - 1)), \
+          PTR_TO(content_start), LEN(content_start, PTR_TO(content_end)), \
+          lexer->current_line, lexer->start_col)) { \
+      return NULL; \
+    } \
     if (lexer->content_end != 0) { \
       p = PTR_TO(content_end - 1); \
     } \
@@ -238,7 +240,7 @@ static PyObject *GherkinLexingError = NULL;
 /** Data **/
 %% write data;
 
-static void
+static int
 unindent(PyObject **con, size_t start_col)
 {
   PyObject *lines, *iterator, *item, *newlines;
@@ -247,11 +249,18 @@ unindent(PyObject **con, size_t start_col)
   Py_ssize_t i, len;
 
   lines = PyUnicode_Splitlines(*con, 0);
+  if (lines == NULL) {
+    return -1;
+  }
   newlines = PyList_New(0);
+  if (newlines == NULL) {
+    return -1;
+  }
   iterator = PyObject_GetIter(lines);
 
   if (iterator == NULL) {
     *con = NULL;
+    return -1;
   }
 
   while ((item = PyIter_Next(iterator)) != NULL) {
@@ -269,18 +278,27 @@ unindent(PyObject **con, size_t start_col)
     newline = PyUnicode_FromObject(newstr);
     PyList_Append(newlines, newline);
 
+    if (PyList_Append(newlines, newstr) == -1) {
+      return -1;
+    }
+
     Py_DECREF(strline);
     Py_DECREF(newstr);
     Py_DECREF(item);
   }
 
   newline = PyUnicode_FromString("\n");
+  if (newline == NULL) {
+    return -1;
+  }
   *con = PyUnicode_Join(newline, newlines);
 
   Py_DECREF(newline);
   Py_DECREF(newlines);
   Py_DECREF(iterator);
   Py_DECREF(lines);
+
+  return (*con == NULL) ? -1 : 0;
 }
 
 static void
@@ -301,7 +319,7 @@ store_kw_con(PyObject *listener, char *event_name, const char *keyword_at,
   Py_DECREF(con);
 }
 
-static void
+static int
 store_multiline_kw_con(PyObject *listener, char *event_name,
                        const char *keyword_at, size_t keyword_length,
                        const char *at, size_t length, size_t current_line,
@@ -311,29 +329,52 @@ store_multiline_kw_con(PyObject *listener, char *event_name,
   PyObject *con, *kw, *name, *desc;
 
   kw = PyUnicode_FromStringAndSize(keyword_at, keyword_length);
+  if (kw == NULL) {
+    return -1;
+  }
   con = PyUnicode_FromStringAndSize(at, length);
-
-  unindent(&con, start_col);
   if (con == NULL) {
-    return;
+    return -1;
+  }
+
+  if (unindent(&con, start_col) == -1) {
+    return -1;
   }
 
   split = PyUnicode_Splitlines(con, 0);
+  if (split == NULL) {
+    return -1;
+  }
   name = PyObject_CallMethod(split, "pop", "i", 0);
+  if (name == NULL) {
+    return -1;
+  }
   newline = PyUnicode_FromString("\n");
+  if (newline == NULL) {
+    return -1;
+  }
 
   desc = PyUnicode_FromString("");
+  if (desc == NULL) {
+    return -1;
+  }
   iterator = PyObject_GetIter(split);
   if (iterator == NULL) {
-    return;
+    return -1;
   }
 
   item = PyIter_Next(iterator);
   while (item != NULL) {
     stripped = PyObject_CallMethod(item, "strip", NULL);
+    if (stripped == NULL) {
+      return -1;
+    }
     Py_DECREF(item);
 
     tmp = PyUnicode_Concat(desc, stripped);
+    if (tmp == NULL) {
+      return -1;
+    }
     Py_DECREF(desc);
     Py_DECREF(stripped);
     desc = tmp;
@@ -349,8 +390,14 @@ store_multiline_kw_con(PyObject *listener, char *event_name,
   if (!PyObject_IsTrue(name)) {
     Py_DECREF(name);
     name = PyUnicode_FromString("");
+    if (name == NULL) {
+      return -1;
+    }
   } else {
     tmp = PyObject_CallMethod(name, "strip", NULL);
+    if (tmp == NULL) {
+      return -1;
+    }
     Py_DECREF(name);
     name = tmp;
   }
@@ -358,14 +405,22 @@ store_multiline_kw_con(PyObject *listener, char *event_name,
   if (!PyObject_IsTrue(desc)) {
     Py_DECREF(desc);
     desc = PyUnicode_FromString("");
+    if (desc == NULL) {
+      return -1;
+    }
   } else {
     tmp = PyObject_CallMethod(desc, "rstrip", NULL);
+    if (tmp == NULL) {
+      return -1;
+    }
     Py_DECREF(desc);
     desc = tmp;
   }
 
-  PyObject_CallMethod(listener, event_name, "OOOi", kw, name, desc,
-                      current_line);
+  if (PyObject_CallMethod(listener, event_name, "OOOi", kw, name, desc,
+                          current_line) == NULL) {
+    return -1;
+  }
 
   Py_DECREF(newline);
   Py_DECREF(name);
@@ -373,6 +428,8 @@ store_multiline_kw_con(PyObject *listener, char *event_name,
   Py_DECREF(kw);
   Py_DECREF(split);
   Py_DECREF(iterator);
+
+  return 0;
 }
 
 static void
