@@ -247,7 +247,12 @@ unindent(PyObject **con, size_t start_col)
   PyObject *ch, *space, *tab, *newstr, *newline;
   Py_ssize_t i, len;
 
-  lines = PyUnicode_Splitlines(*con, 0);
+  newline = PyUnicode_FromString("\n");
+  if (newline == NULL) {
+    return -1;
+  }
+
+  lines = PyUnicode_Split(*con, newline, -1);
   if (lines == NULL) {
     return -1;
   }
@@ -287,10 +292,6 @@ unindent(PyObject **con, size_t start_col)
   Py_DECREF(space);
   Py_DECREF(tab);
 
-  newline = PyUnicode_FromString("\n");
-  if (newline == NULL) {
-    return -1;
-  }
   *con = PyUnicode_Join(newline, newlines);
 
   Py_DECREF(newline);
@@ -325,7 +326,7 @@ store_multiline_kw_con(PyObject *listener, char *event_name,
                        const char *at, size_t length, size_t current_line,
                        size_t start_col)
 {
-  PyObject *split, *newline, *tmp, *iterator, *item, *stripped;
+  PyObject *split, *newline, *tmp, *iterator, *item;
   PyObject *con, *kw, *name, *desc;
 
   kw = PyUnicode_FromStringAndSize(keyword_at, keyword_length);
@@ -336,22 +337,26 @@ store_multiline_kw_con(PyObject *listener, char *event_name,
   if (con == NULL) {
     return -1;
   }
-
   if (unindent(&con, start_col) == -1) {
     return -1;
   }
 
-  split = PyUnicode_Splitlines(con, 0);
-  if (split == NULL) {
-    return -1;
-  }
-  name = PyObject_CallMethod(split, "pop", "i", 0);
-  if (name == NULL) {
-    return -1;
-  }
   newline = PyUnicode_FromString("\n");
   if (newline == NULL) {
     return -1;
+  }
+
+  split = PyUnicode_Split(con, newline, -1);
+  if (split == NULL) {
+    return -1;
+  }
+  if (PyList_Size(split) == 0) {
+    name = con;
+  } else {
+    name = PyObject_CallMethod(split, "pop", "i", 0);
+    if (name == NULL) {
+      return -1;
+    }
   }
 
   desc = PyUnicode_FromString("");
@@ -365,18 +370,11 @@ store_multiline_kw_con(PyObject *listener, char *event_name,
 
   item = PyIter_Next(iterator);
   while (item != NULL) {
-    stripped = PyObject_CallMethod(item, "strip", NULL);
-    if (stripped == NULL) {
-      return -1;
-    }
-    Py_DECREF(item);
-
-    tmp = PyUnicode_Concat(desc, stripped);
+    tmp = PyUnicode_Concat(desc, item);
     if (tmp == NULL) {
       return -1;
     }
     Py_DECREF(desc);
-    Py_DECREF(stripped);
     desc = tmp;
 
     item = PyIter_Next(iterator);
@@ -422,8 +420,11 @@ store_multiline_kw_con(PyObject *listener, char *event_name,
     return -1;
   }
 
+  Py_DECREF(con);
   Py_DECREF(newline);
-  Py_DECREF(name);
+  if (con != name) {
+    Py_DECREF(name);
+  }
   Py_DECREF(desc);
   Py_DECREF(kw);
   Py_DECREF(split);
@@ -449,11 +450,13 @@ store_docstring_content(PyObject *listener, size_t start_col,
   PyObject *tmp, *cr;
   PyObject *con = PyUnicode_FromStringAndSize(at, length);
   PyObject *con_type = PyUnicode_FromStringAndSize(type_at, type_length);
+  Py_ssize_t len;
 
   unindent(&con, start_col);
 
   cr = PyUnicode_FromString("\r");
-  if (PyUnicode_Tailmatch(con, cr, 0, -1, 1)) {
+  len = PyUnicode_GET_SIZE(con);
+  if (PyUnicode_Tailmatch(con, cr, 0, len, 1)) {
     tmp = PySequence_GetSlice(con, 0, -1);
     Py_DECREF(con);
     con = tmp;
