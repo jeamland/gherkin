@@ -77,7 +77,12 @@ static PyObject *GherkinLexingError = NULL;
     if (len < 0) len = 0;
     if (type_len < 0) type_len = 0;
 
-    store_docstring_content(listener, lexer->start_col, PTR_TO(docstring_content_type_start), type_len, PTR_TO(content_start), len, lexer->current_line);
+    if (store_docstring_content(listener, lexer->start_col,
+                                PTR_TO(docstring_content_type_start),
+                                (size_t)type_len, PTR_TO(content_start),
+                                (size_t)len, lexer->current_line) == -1) {
+      return NULL;
+    }
   }
 
   action start_docstring_content_type {
@@ -442,17 +447,28 @@ store_attr(PyObject *listener, char* attr_type, const char* at, size_t length,
   Py_DECREF(val);
 }
 
-static void
+static int
 store_docstring_content(PyObject *listener, size_t start_col,
                         const char *type_at, size_t type_length,
                         const char *at, size_t length, size_t current_line)
 {
   PyObject *tmp, *cr;
-  PyObject *con = PyUnicode_FromStringAndSize(at, length);
-  PyObject *con_type = PyUnicode_FromStringAndSize(type_at, type_length);
+  PyObject *con;
+  PyObject *con_type;
   Py_ssize_t len;
 
-  unindent(&con, start_col);
+  con = PyUnicode_FromStringAndSize(at, length);
+  if (con == NULL) {
+    return -1;
+  }
+  con_type = PyUnicode_FromStringAndSize(type_at, type_length);
+  if (con_type == NULL) {
+    return -1;
+  }
+
+  if (unindent(&con, start_col) == -1) {
+    return -1;
+  }
 
   cr = PyUnicode_FromString("\r");
   len = PyUnicode_GET_SIZE(con);
@@ -464,18 +480,28 @@ store_docstring_content(PyObject *listener, size_t start_col,
   Py_DECREF(cr);
 
   tmp = PyObject_CallMethod(con_type, "strip", NULL);
+  if (tmp == NULL) {
+    return -1;
+  }
   Py_DECREF(con_type);
   con_type = tmp;
 
   tmp = PyObject_CallMethod(con, "replace", "ss", "\\\"\\\"\\\"", "\"\"\"");
+  if (tmp == NULL) {
+    return -1;
+  }
   Py_DECREF(con);
   con = tmp;
 
-  PyObject_CallMethod(listener, "doc_string", "OOi", con_type, con,
-                      current_line);
+  if (PyObject_CallMethod(listener, "doc_string", "OOi", con_type, con,
+                          current_line) == NULL) {
+    return -1;
+  }
 
   Py_DECREF(con_type);
   Py_DECREF(con);
+
+  return 0;
 }
 
 static void
