@@ -75,7 +75,7 @@ static PyObject *GherkinLexingError = NULL;
     long type_len = LEN(docstring_content_type_start, PTR_TO(docstring_content_type_end));
 
     if (len < 0) len = 0;
-    if (type_len < 0) len = 0;
+    if (type_len < 0) type_len = 0;
 
     store_docstring_content(listener, lexer->start_col, PTR_TO(docstring_content_type_start), type_len, PTR_TO(content_start), len, lexer->current_line);
   }
