@@ -142,7 +142,7 @@ class TestScenarios(LexerTest):
         ])
 
     def test_allow_multiline_descriptions_including_whitespace(self):
-        self.scan(u"""Scenario: It is my ambition to say
+        self.scan(u"""Scenario: It is my ambition to say 
   in ten sentences
   what others say 
       in a whole book.
@@ -489,22 +489,22 @@ class TestMiscellaneous(LexerTest):
             [u"step", u"Then ", u"crazy", 45],
             [u"eof"],
         ])
-    
+
     @tools.raises(LexingError)
     def test_should_raise_error_if_unparsable_token_is_found_1(self):
         self.scan(u"Some text\nFeature: Hi")
-    
+
     @tools.raises(LexingError)
     def test_should_raise_error_if_unparsable_token_is_found_2(self):
         self.scan(u"Feature: Hi\nBackground:\nGiven something\nScenario A scenario")
-        
+
     @tools.raises(LexingError)
     def test_should_raise_error_if_unparsable_token_is_found_3(self):
         self.scan(u"Scenario: My scenario\nGiven foo\nAand bar\nScenario: another one\nGiven blah")
-    
+
     def _test_should_include_the_line_number_and_context_of_the_error(self):
         assert False
-    
+
     def test_feature_keyword_should_terminate_narratives_for_multiline_capable_tokens(self):
         self.scan(u"Feature:\nBackground:\nFeature:\nScenario Outline:\nFeature:\nScenario:\nFeature:\nExamples:\nFeature:\n")
         self.check([
