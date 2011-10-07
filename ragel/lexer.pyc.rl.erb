@@ -12,21 +12,21 @@ typedef struct lexer_state {
 
   PyObject *listener;
 
-  size_t content_len;
-  size_t line_number;
-  size_t current_line;
-  size_t start_col;
-  size_t mark;
-  size_t keyword_start;
-  size_t keyword_end;
-  size_t next_keyword_start;
-  size_t content_start;
-  size_t content_end;
-  size_t docstring_content_type_start;
-  size_t docstring_content_type_end;
-  size_t query_start;
-  size_t last_newline;
-  size_t final_newline;
+  long content_len;
+  long line_number;
+  long current_line;
+  long start_col;
+  long mark;
+  long keyword_start;
+  long keyword_end;
+  long next_keyword_start;
+  long content_start;
+  long content_end;
+  long docstring_content_type_start;
+  long docstring_content_type_end;
+  long query_start;
+  long last_newline;
+  long final_newline;
 } lexer_state;
 
 static PyObject *GherkinLexingError = NULL;
@@ -71,8 +71,8 @@ static PyObject *GherkinLexingError = NULL;
   }
 
   action store_docstring_content {
-    size_t len = LEN(content_start, PTR_TO(final_newline));
-    size_t type_len = LEN(docstring_content_type_start, PTR_TO(docstring_content_type_end));
+    long len = LEN(content_start, PTR_TO(final_newline));
+    long type_len = LEN(docstring_content_type_start, PTR_TO(docstring_content_type_end));
 
     if (len < 0) len = 0;
     if (type_len < 0) len = 0;
