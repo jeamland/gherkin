@@ -171,18 +171,30 @@ static PyObject *GherkinLexingError = NULL;
                                                    LEN(content_start, p));
 
     PyObject *con = PyObject_CallMethod(tmpcon, "strip", NULL);
+    if (con == NULL) {
+      return NULL;
+    }
     Py_DECREF(tmpcon);
     tmpcon = con;
 
     con = PyObject_CallMethod(tmpcon, "replace", "ss", "\\|", "|");
+    if (con == NULL) {
+      return NULL;
+    }
     Py_DECREF(tmpcon);
     tmpcon = con;
 
     con = PyObject_CallMethod(tmpcon, "replace", "ss", "\\n", "\n");
+    if (con == NULL) {
+      return NULL;
+    }
     Py_DECREF(tmpcon);
     tmpcon = con;
 
     con = PyObject_CallMethod(tmpcon, "replace", "ss", "\\\\", "\\");
+    if (con == NULL) {
+      return NULL;
+    }
     Py_DECREF(tmpcon);
 
     PyList_Append(current_row, con);
