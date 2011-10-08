@@ -226,7 +226,6 @@ static PyObject *GherkinLexingError = NULL;
       newstr_val = PyString_FromStringAndSize(buff, len);
       newstr = PyString_AsString(newstr_val);
 
-
       for (count = 0; count < len; count++) {
         if(buff[count] == 10) {
           newstr[newstr_count] = '\0'; // terminate new string at first newline found
@@ -600,16 +599,21 @@ Lexer_scan(PyObject *self, PyObject *args, PyObject *kwds)
   lexer = (lexer_state *)self;
   listener = lexer->listener;
 
-  input_copy = PyObject_Str(input);
-  if (input_copy == NULL) {
-    return NULL;
+  if (PyUnicode_Check(input)) {
+    input_copy = input;
+    Py_INCREF(input_copy);
+  } else {
+    input_copy = PyObject_Str(input);
+    if (input_copy == NULL) {
+      return NULL;
+    }
+    tmp = PyObject_CallMethod(input_copy, "decode", "s", "utf8");
+    if (tmp == NULL) {
+      return NULL;
+    }
+    Py_DECREF(input_copy);
+    input_copy = tmp;
   }
-  tmp = PyObject_CallMethod(input_copy, "decode", "s", "utf8");
-  if (tmp == NULL) {
-    return NULL;
-  }
-  Py_DECREF(input_copy);
-  input_copy = tmp;
   feature_end = PyUnicode_FromString("\n%_FEATURE_END_%");
   if (feature_end == NULL) {
     return NULL;
