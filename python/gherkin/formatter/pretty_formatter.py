@@ -51,6 +51,7 @@ class PrettyFormatter(object):
         self.print_tags(feature.tags, '')
         self.stream.write("%s: %s\n" % (feature.keyword, feature.name))
         self.print_description(feature.description, '  ', False)
+        self.stream.flush()
 
     def background(self, background):
         self.replay()
@@ -67,6 +68,7 @@ class PrettyFormatter(object):
     def replay(self):
         self.print_statement()
         self.print_steps()
+        self.stream.flush()
 
     def examples(self, examples):
         self.replay()
@@ -77,6 +79,7 @@ class PrettyFormatter(object):
                                             self.examples.name))
         self.print_description(self.examples.description, '      ')
         self.table(examples.rows)
+        self.stream.flush()
 
     def step(self, step):
         self.steps.append(step)
@@ -86,11 +89,13 @@ class PrettyFormatter(object):
         self.print_statement()
         self.print_step('executing', self._match.arguments,
                         self._match.location, False)
+        self.stream.flush()
 
     def result(self, result):
         self.stream.write(up(1))
         self.print_step(result.status, self._match.arguments,
                         self._match.location, True)
+        self.stream.flush()
 
     def arg_format(self, key):
         return self.format(key + '_arg')
@@ -110,6 +115,7 @@ class PrettyFormatter(object):
 
     def eof(self):
         self.replay()
+        self.stream.flush()
 
     def table(self, rows):
         cell_lengths = []
@@ -133,6 +139,7 @@ class PrettyFormatter(object):
                 self.stream.write(' ' * (max_length - cell_lengths[i][j]))
                 self.stream.write(' |')
             self.stream.write('\n')
+        self.stream.flush()
 
     def doc_string(self, doc_string):
         self.stream.write('      """' + doc_string.content_type + '\n')
@@ -140,10 +147,12 @@ class PrettyFormatter(object):
                                                            '      '))
         self.stream.write(doc_string)
         self.stream.write('\n      """')
+        self.stream.flush()
 
     def exception(self, exception):
         exception_text = HERP
         self.stream.write(self.failed(exception_text) + '\n')
+        self.stream.flush()
 
     def color(self, cell, statuses, color):
         if statuses:
