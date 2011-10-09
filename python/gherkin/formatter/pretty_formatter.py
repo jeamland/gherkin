@@ -33,7 +33,6 @@ class PrettyFormatter(object):
         self.executing = executing
 
         self.step_printer = StepPrinter()
-        self.background = None
         self.tag_statement = None
         self.steps = []
 
