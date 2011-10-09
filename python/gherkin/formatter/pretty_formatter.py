@@ -160,7 +160,7 @@ class PrettyFormatter(object):
             return escape_cell(cell)
 
     def indent(self, string, indentation):
-        return '\n'.join([indentation + s for s in string.splitlines()])
+        return '\n'.join([indentation + s for s in string.split('\n')])
 
     def escape_triple_quotes(self, string):
         return string.replace(u'"""', u'\\"\\"\\"')
