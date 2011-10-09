@@ -1,16 +1,16 @@
 import os
 
 colors = {
-    'black':    "\x1b[30m",
-    'red':      "\x1b[31m",
-    'green':    "\x1b[32m",
-    'yellow':   "\x1b[33m",
-    'blue':     "\x1b[34m",
-    'magenta':  "\x1b[35m",
-    'cyan':     "\x1b[36m",
-    'white':    "\x1b[37m",
-    'grey':     "\x1b[90m",
-    'bold':     "\x1b[1m",
+    'black':        u"\x1b[30m",
+    'red':          u"\x1b[31m",
+    'green':        u"\x1b[32m",
+    'yellow':       u"\x1b[33m",
+    'blue':         u"\x1b[34m",
+    'magenta':      u"\x1b[35m",
+    'cyan':         u"\x1b[36m",
+    'white':        u"\x1b[37m",
+    'grey':         u"\x1b[90m",
+    'bold':         u"\x1b[1m",
 }
 
 aliases = {
@@ -26,8 +26,8 @@ aliases = {
 }
 
 escapes = {
-    'reset':    '\x1b[0m',
-    'up':       '\x1b[#1A',
+    'reset':        u'\x1b[0m',
+    'up':           u'\x1b[#1A',
 }
 
 if 'GHERKIN_COLORS' in os.environ:
@@ -41,4 +41,4 @@ for alias in aliases:
     escapes[arg_alias] = ''.join([colors[c] for c in arg_seq.split(',')])
 
 def up(n):
-    return "\x1b[#%dA" % n
+    return u"\x1b[#%dA" % n
