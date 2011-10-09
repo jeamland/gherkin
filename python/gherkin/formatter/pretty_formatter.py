@@ -145,7 +145,7 @@ class PrettyFormatter(object):
         doc_string = self.escape_triple_quotes(self.indent(doc_string.value,
                                                            '      '))
         self.stream.write(doc_string)
-        self.stream.write('\n      """')
+        self.stream.write('\n      """\n')
         self.stream.flush()
 
     def exception(self, exception):
