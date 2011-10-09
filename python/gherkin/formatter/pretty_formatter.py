@@ -180,7 +180,12 @@ class PrettyFormatter(object):
 
     def calculate_location_indentations(self):
         lines = [self.statement] + self.steps
-        line_widths = [len((s.keyword + s.name).decode('utf8')) for s in lines]
+        line_widths = []
+        for s in lines:
+            string = s.keyword + s.name
+            if type(string) is str:
+                string = string.decode('utf8')
+            line_widths.append(len(string))
         max_line_width = max(line_widths)
         self.indentations = [max_line_width - width for width in line_widths]
 
