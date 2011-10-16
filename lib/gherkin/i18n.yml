@@ -204,7 +204,7 @@
   scenario: Escenario
   scenario_outline: Esquema del escenario
   examples: Ejemplos
-  given: "*|Dado"
+  given: "*|Dado|Dada|Dados|Dadas"
   when: "*|Cuando"
   then: "*|Entonces"
   and: "*|Y"
@@ -243,7 +243,7 @@
   scenario: Scénario
   scenario_outline: Plan du scénario|Plan du Scénario
   examples: Exemples
-  given: "*|Soit|Etant donné"
+  given: "*|Soit|Etant donné|Etant donnée|Etant donnés|Etant données|Étant donné|Étant donnée|Étant donnés|Étant données"
   when: "*|Quand|Lorsque|Lorsqu'<"
   then: "*|Alors"
   and: "*|Et"
@@ -306,7 +306,7 @@
   feature: Eiginleiki
   background: Bakgrunnur
   scenario: Atburðarás
-  scenario_outline: Lýsing Atburðarásar|Lýsing Dæma 
+  scenario_outline: Lýsing Atburðarásar|Lýsing Dæma
   examples: Dæmi|Atburðarásir
   given: "*|Ef"
   when: "*|Þegar"
@@ -321,7 +321,7 @@
   scenario: Scenario
   scenario_outline: Schema dello scenario
   examples: Esempi
-  given: "*|Dato"
+  given: "*|Dato|Data|Dati|Date"
   when: "*|Quando"
   then: "*|Allora"
   and: "*|E"
@@ -438,7 +438,7 @@
   scenario: Cenário|Cenario
   scenario_outline: Esquema do Cenário|Esquema do Cenario
   examples: Exemplos
-  given: "*|Dado"
+  given: "*|Dado|Dada|Dados|Dadas"
   when: "*|Quando"
   then: "*|Então|Entao"
   and: "*|E"
