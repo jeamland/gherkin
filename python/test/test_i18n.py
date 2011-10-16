@@ -34,6 +34,19 @@ class TestI18n(unittest.TestCase):
             [u'eof']
         ])
 
+    def test_recognize_keywords_that_are_a_little_ambiguous(self):
+        lexer = I18nLexer(self.listener)
+        self.scan_file(lexer, 'i18n_fr2.feature')
+        tools.eq_(self.listener.sexps, [
+            [u'comment', u"#language:fr", 1],
+            [u'feature', u"Fonctionnalité", u"i18n", u"", 2],
+            [u'scenario', u"Scénario", u"Le French", u"", 4],
+            [u'step', u"Etant donné ", u"qqch", 5],
+            [u'step', u"Etant donnée ", u"qqch", 6],
+            [u'step', u"Etant donnés ", u"qqch", 7],
+            [u'step', u"Etant données ", u"qqch", 8],
+            [u'eof']
+        ])
     def test_parse_languages_without_a_space_after_keywords(self):
         lexer = I18nLexer(self.listener)
         self.scan_file(lexer, 'i18n_zh-CN.feature')
@@ -130,21 +143,21 @@ class TestI18n(unittest.TestCase):
 
     def test_print_keyword_for_a_given_language(self):
         assert u"\n" + I18n.get('fr').keyword_table() == u"""
-      | feature          | "Fonctionnalité"                       |
-      | background       | "Contexte"                             |
-      | scenario         | "Scénario"                             |
-      | scenario_outline | "Plan du scénario", "Plan du Scénario" |
-      | examples         | "Exemples"                             |
-      | given            | "* ", "Soit ", "Etant donné "          |
-      | when             | "* ", "Quand ", "Lorsque ", "Lorsqu'"  |
-      | then             | "* ", "Alors "                         |
-      | and              | "* ", "Et "                            |
-      | but              | "* ", "Mais "                          |
-      | given (code)     | "Soit", "Etantdonné"                   |
-      | when (code)      | "Quand", "Lorsque", "Lorsqu"           |
-      | then (code)      | "Alors"                                |
-      | and (code)       | "Et"                                   |
-      | but (code)       | "Mais"                                 |
+      | feature          | "Fonctionnalité"                                                                                                                                      |
+      | background       | "Contexte"                                                                                                                                            |
+      | scenario         | "Scénario"                                                                                                                                            |
+      | scenario_outline | "Plan du scénario", "Plan du Scénario"                                                                                                                |
+      | examples         | "Exemples"                                                                                                                                            |
+      | given            | "* ", "Soit ", "Etant donné ", "Etant donnée ", "Etant donnés ", "Etant données ", "Étant donné ", "Étant donnée ", "Étant donnés ", "Étant données " |
+      | when             | "* ", "Quand ", "Lorsque ", "Lorsqu'"                                                                                                                 |
+      | then             | "* ", "Alors "                                                                                                                                        |
+      | and              | "* ", "Et "                                                                                                                                           |
+      | but              | "* ", "Mais "                                                                                                                                         |
+      | given (code)     | "Soit", "Etantdonné", "Etantdonnée", "Etantdonnés", "Etantdonnées", "Étantdonné", "Étantdonnée", "Étantdonnés", "Étantdonnées"                        |
+      | when (code)      | "Quand", "Lorsque", "Lorsqu"                                                                                                                          |
+      | then (code)      | "Alors"                                                                                                                                               |
+      | and (code)       | "Et"                                                                                                                                                  |
+      | but (code)       | "Mais"                                                                                                                                                |
 """
 
 if __name__ == '__main__':
