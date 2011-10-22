@@ -1,3 +1,13 @@
+## [2.5.4](https://github.com/cucumber/gherkin/compare/v2.5.3...v2.5.4)
+
+### New Features
+* [Java] Rename/add constants in Match and Result. (Aslak Hellesøy)
+
+## [2.5.3](https://github.com/cucumber/gherkin/compare/v2.5.2...v2.5.3)
+
+### New Features
+* [Java] AnsiEscapes can append to a NiceAppendable. (Aslak Hellesøy)
+
 ## [2.5.2](https://github.com/cucumber/gherkin/compare/v2.5.1...v2.5.2)
 
 ### New Features
