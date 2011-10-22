@@ -17,6 +17,7 @@ class Parser(object):
 
         self.line_offset = None
         self.i18n_language = None
+        self.feature_uri = None
 
         self.listener = FormatterListener(self.formatter)
         self.machines = []
@@ -24,6 +25,7 @@ class Parser(object):
         self.lexer = I18nLexer(self)
 
     def parse(self, gherkin, feature_uri, line_offset):
+        self.feature_uri = feature_uri
         self.formatter.uri(feature_uri)
         self.line_offset = line_offset
         self.lexer.scan(gherkin)
@@ -32,8 +34,13 @@ class Parser(object):
         attr = getattr(self.listener, name)
         if type(attr) is not types.MethodType:
             raise AttributeError
-        def wrapper(self, *args):
-            self.event(name, args[-1])
+        def wrapper(*args):
+            if args[0] is self:
+                args = args[1:]
+            if name == u'eof':
+                self.event(name, None)
+            else:
+                self.event(name, args[-1])
             attr(*args)
             if name == u'eof':
                 self.pop_machine()
@@ -106,7 +113,6 @@ class Machine(object):
 
     def event(self, event, line):
         states = self.transition_map[self.state]
-        raise ParseError()
 
         new_state = states[event]
 
@@ -127,9 +133,10 @@ class Machine(object):
 
     @property
     def expected(self):
-        events = [s[0] for s in self.transition_map[self.state] if s[1] != 'E']
+        transition_map = self.transition_map[self.state]
+        events = [s for s in transition_map if transition_map[s] != 'E']
         events.sort()
-        events.remove('eof')
+        events.remove(u'eof')
         return events
 
     def _transition_map(self, name):
