@@ -10,7 +10,29 @@ class Argument(object):
         self.offset = offset
         self.val = ensure_unicode(val)
 
-class BasicStatement(object):
+class Dictable(object):
+    include_type = False
+    
+    def to_dict(self):
+        result = {}
+        if self.include_type:
+            result['type'] = self.type
+        for name, value in self.__dict__.items():
+            if isinstance(value, BasicStatement):
+                value = value.to_dict()
+            if type(value) is list:
+                new_value = []
+                for element in value:
+                    if isinstance(element, BasicStatement):
+                        new_value.append(element.to_dict())
+                    else:
+                        new_value.append(element)
+                value = new_value
+            if value not in ([], None):
+                result[name] = value
+        return result
+    
+class BasicStatement(Dictable):
     def __init__(self, comments, keyword, name, line):
         self.comments = comments
         self.keyword = ensure_unicode(keyword)
@@ -26,7 +48,7 @@ class BasicStatement(object):
 
     def first_non_comment_line(self):
         return self.line
-
+    
 class DescribedStatement(BasicStatement):
     def __init__(self, comments, keyword, name, description, line):
         super(DescribedStatement, self).__init__(comments, keyword, name, line)
@@ -54,12 +76,15 @@ class Feature(TagStatement, Replayable):
 
 class Background(DescribedStatement, Replayable):
     type = "background"
+    include_type = True
 
 class Scenario(TagStatement, Replayable):
     type = "scenario"
+    include_type = True
 
 class ScenarioOutline(TagStatement, Replayable):
     type = "scenario_outline"
+    include_type = True
 
 class Examples(TagStatement, Replayable):
     type = "examples"
@@ -97,12 +122,12 @@ class Step(BasicStatement, Replayable):
             arguments.append(Argument(start, self.name[start:end + 1]))
         return arguments
 
-class Comment(object):
+class Comment(Dictable):
     def __init__(self, value, line):
         self.value = ensure_unicode(value)
         self.line = line
 
-class Tag(object):
+class Tag(Dictable):
     def __init__(self, name, line):
         self.name = ensure_unicode(name)
         self.line = line
@@ -113,7 +138,7 @@ class Tag(object):
     def __hash__(self):
         return hash(self.name)
 
-class DocString(object):
+class DocString(Dictable):
     def __init__(self, content_type, value, line):
         self.content_type = ensure_unicode(content_type)
         self.value = ensure_unicode(value)
@@ -123,20 +148,20 @@ class DocString(object):
         line_count = len(self.value.splitlines())
         return (self.line, self.line + line_count + 1)
 
-class Row(object):
+class Row(Dictable):
     def __init__(self, comments, cells, line):
         self.comments = comments
         self.cells = [ensure_unicode(c) for c in cells]
         self.line = line
 
-class Match(Replayable):
+class Match(Dictable, Replayable):
     type = "match"
 
     def __init__(self, arguments, location):
         self.arguments = arguments
         self.location = location
 
-class Result(Replayable):
+class Result(Dictable, Replayable):
     type = "result"
 
     def __init__(self, status, duration, error_message):
